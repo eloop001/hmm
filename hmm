@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Define the path to your python helper script
+HELPER_SCRIPT="$HOME/.local/bin/cmdhelper.py"
+
+# Check if the first argument is the execute flag
+if [[ "$1" == "-x" ]]; then
+    # Remove the '-x' flag from the list of arguments
+    shift 
+    
+    # Run the helper script and capture the output into a variable
+    GENERATED_CMD=$("$HELPER_SCRIPT" "$@")
+    
+    # Print what is about to be executed (for safety and visibility)
+    printf "\033[36mCommand:\033[0m %s\n" "$GENERATED_CMD"
+    
+    # --- SAFETY CONFIRMATION BLOCK (Currently Disabled) ---
+    # To enable, uncomment the lines below and delete the active 'eval' line at the bottom.
+    
+    # read -r -p "Execute this command? [Y/n] " confirm
+    # # Default to Yes if the user just presses Enter, or accept Y/y
+    # if [[ -z "$confirm" || "$confirm" =~ ^[Yy]$ ]]; then
+    #     eval "$GENERATED_CMD"
+    # else
+    #     printf "\033[31mExecution cancelled.\033[0m\n"
+    # fi
+    
+    # ------------------------------------------------------
+    
+    # Execute the generated command automatically (Active)
+    eval "$GENERATED_CMD"
+    
+else
+    # Standard behavior: just run the script and print to console
+    "$HELPER_SCRIPT" "$@"
+fi
