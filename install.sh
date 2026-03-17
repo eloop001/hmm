@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-BASE_URL="https://storage.googleapis.com/x9xx12ke-command-line-helper"
+BASE_URL="https://raw.githubusercontent.com/eloop001/hmm/main"
 INSTALL_DIR="$HOME/.local/bin"
 FILES=("hmm" "gpt.py" "cmdhelper.py" "oshelp.md")
 
