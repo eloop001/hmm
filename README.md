@@ -33,7 +33,7 @@ We firmly believe in transparency when it comes to tools that read from your env
 
 When you run the installation script (`install.sh`), it will:
 
-1. **Download Scripts**: Fetch the required scripts (`hmm`, `gpt.py`, `cmdhelper.py`, and `oshelp.md`) and place them in your `~/.local/bin` directory.
+1. **Download Scripts**: Fetch the required scripts (`hmm`, `gpt.py`, `cmdhelper.py`, and `oshelp.md`) directly from the [GitHub repository](https://github.com/eloop001/hmm) and place them in your `~/.local/bin` directory.
 2. **Setup Environment**: Locate your Conda or Miniconda installation, and create a lightweight, isolated environment named `hmm-helper` using Python 3.11. 
 3. **Install Dependencies**: Install the `google-genai` Python package into that isolated Conda environment so it doesn't pollute your global Python setup.
 4. **Shell Configuration**: Prompt you for your Google Gemini API key and securely inject it (along with `~/.local/bin` to your PATH) into your shell configuration file (like `~/.bashrc`, `~/.zshrc`, or `~/.profile`). 
