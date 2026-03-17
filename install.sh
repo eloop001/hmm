@@ -3,7 +3,7 @@ set -e
 
 BASE_URL="https://raw.githubusercontent.com/eloop001/hmm/main"
 INSTALL_DIR="$HOME/.local/bin"
-FILES=("hmm" "gpt.py" "cmdhelper.py" "oshelp.md")
+FILES="hmm gpt.py cmdhelper.py oshelp.md"
 
 # ── 1. Request the Google API Key securely ────────────────────────────────────
 echo "Enter your Google Gemini API Key:"
@@ -32,7 +32,7 @@ echo "Found conda at: $CONDA_BASE"
 
 # Source conda so we can use 'conda' commands in this script
 # shellcheck disable=SC1090
-source "$CONDA_BASE/etc/profile.d/conda.sh"
+. "$CONDA_BASE/etc/profile.d/conda.sh"
 
 # ── 3. Create conda env and install google-genai ──────────────────────────────
 CONDA_ENV="hmm-helper"
@@ -53,7 +53,7 @@ mkdir -p "$INSTALL_DIR"
 
 # ── 5. Download all files ─────────────────────────────────────────────────────
 echo "Downloading files to $INSTALL_DIR ..."
-for FILE in "${FILES[@]}"; do
+for FILE in $FILES; do
     echo "  Downloading $FILE ..."
     curl -fsSL "$BASE_URL/$FILE" -o "$INSTALL_DIR/$FILE"
 done
