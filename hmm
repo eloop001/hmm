@@ -17,6 +17,16 @@ if [[ "$1" == "-update" ]]; then
         CONDA_PYTHON=$(head -n 1 "$INSTALL_DIR/cmdhelper.py" | grep '^#!' | sed 's/^#!//')
     fi
     
+    # If the shebang was not correctly pointing to a conda environment, try to detect it
+    if [[ "$CONDA_PYTHON" == *"/usr/bin/env"* || -z "$CONDA_PYTHON" || "$CONDA_PYTHON" == "/usr/bin/python"* ]]; then
+        for candidate in "$HOME/miniconda3" "$HOME/anaconda3" "$HOME/opt/anaconda3" "/opt/miniconda3" "/opt/anaconda3"; do
+            if [ -f "$candidate/envs/hmm-helper/bin/python" ]; then
+                CONDA_PYTHON="$candidate/envs/hmm-helper/bin/python"
+                break
+            fi
+        done
+    fi
+    
     for FILE in $FILES; do
         echo "  Downloading $FILE ..."
         curl -fsSL "$BASE_URL/$FILE" -o "$INSTALL_DIR/$FILE"

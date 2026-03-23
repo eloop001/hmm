@@ -39,7 +39,7 @@ def main():
     if len(sys.argv) < 2:
         print("Hmm...Error: No prompt provided.")
         print("Usage: hmm [-x] <your question>")
-        print("       hmm -updatem  (to update hmm to the latest version)")
+        print("       hmm -update   (to update hmm to the latest version)")
         sys.exit(1)
     
     # Capture the prompt (combining arguments just in case quotes are omitted)

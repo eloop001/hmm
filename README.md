@@ -17,7 +17,7 @@ Command: ls -lS
 You can also easily update `hmm` to the latest version by running:
 
 ```bash
-:~$ hmm -updatem
+:~$ hmm -update
 ```
 
 There is even a failsafe, pretty useful for beginners. Even if you use the flag `-x` ***hmm*** will warn you, and will **not** run the command directly, if it will result in severe loss of data or corruption of the os.
