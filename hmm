@@ -3,6 +3,50 @@
 # Define the path to your python helper script
 HELPER_SCRIPT="$HOME/.local/bin/cmdhelper.py"
 
+if [[ "$1" == "-update" ]]; then
+    echo "Updating hmm..."
+    BASE_URL="https://raw.githubusercontent.com/eloop001/hmm/main"
+    INSTALL_DIR="$HOME/.local/bin"
+    FILES="hmm gpt.py cmdhelper.py oshelp.md"
+    
+    mkdir -p "$INSTALL_DIR"
+    
+    # Preserve the existing Python shebang if present
+    CONDA_PYTHON=""
+    if [ -f "$INSTALL_DIR/cmdhelper.py" ]; then
+        CONDA_PYTHON=$(head -n 1 "$INSTALL_DIR/cmdhelper.py" | grep '^#!' | sed 's/^#!//')
+    fi
+    
+    for FILE in $FILES; do
+        echo "  Downloading $FILE ..."
+        curl -fsSL "$BASE_URL/$FILE" -o "$INSTALL_DIR/$FILE"
+    done
+    
+    chmod +x "$INSTALL_DIR/hmm" "$INSTALL_DIR/gpt.py" "$INSTALL_DIR/cmdhelper.py"
+    
+    # Restore shebangs
+    if [ -n "$CONDA_PYTHON" ]; then
+        echo "Restoring shebangs to use $CONDA_PYTHON ..."
+        for PYFILE in "$INSTALL_DIR/gpt.py" "$INSTALL_DIR/cmdhelper.py"; do
+            if head -1 "$PYFILE" | grep -q '^#!'; then
+                if [ "$(uname)" = "Darwin" ]; then
+                    sed -i '' "1s|^#!.*|#!$CONDA_PYTHON|" "$PYFILE"
+                else
+                    sed -i "1s|^#!.*|#!$CONDA_PYTHON|" "$PYFILE"
+                fi
+            else
+                echo "#!$CONDA_PYTHON" > "$PYFILE.tmp"
+                cat "$PYFILE" >> "$PYFILE.tmp"
+                mv "$PYFILE.tmp" "$PYFILE"
+                chmod +x "$PYFILE"
+            fi
+        done
+    fi
+    
+    echo "Update complete!"
+    exit 0
+fi
+
 # Check if the first argument is the execute flag
 if [[ "$1" == "-x" ]]; then
     # Remove the '-x' flag from the list of arguments

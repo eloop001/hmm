@@ -12,8 +12,12 @@ Welcome to ***hmm***! The ultra-light command-line helper built for folks comple
 Command: ls -lS
 -rw-r--r--  1 mv   mv   3743358830 Mar 17 09:41  vid.mp4
 -rw-rw-r--  1 mv   mv     78267034 Mar  3 12:09  snd.mp3
+```
 
+You can also easily update `hmm` to the latest version by running:
 
+```bash
+:~$ hmm -updatem
 ```
 
 There is even a failsafe, pretty useful for beginners. Even if you use the flag `-x` ***hmm*** will warn you, and will **not** run the command directly, if it will result in severe loss of data or corruption of the os.
