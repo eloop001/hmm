@@ -9,23 +9,29 @@ from gpt import call_gpt
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def get_os_info() -> str:
-    """Extract operating system type and detailed versioning for environment context."""
+    """Extract OS type, version, architecture, and shell for concise environment context."""
     system = platform.system()
+    arch = platform.machine()
+    shell = os.environ.get("SHELL", "unknown")
+    
+    hw_type = "Apple" if system == "Darwin" else "PC"
     
     if system == "Linux":
         try:
             with open("/etc/os-release") as f:
                 os_data = dict(line.strip().split("=", 1) for line in f if "=" in line)
             name = os_data.get("PRETTY_NAME", os_data.get("NAME", '"Linux"')).strip('"\'')
-            return f"Linux / {name}"
+            base = f"{hw_type} | Linux / {name}"
         except OSError:
             # Fallback when the OS release file is unavailable
-            return f"Linux / {platform.release()}"
+            base = f"{hw_type} | Linux / {platform.release()}"
             
-    if system == "Darwin":
-        return f"Mac / macOS {platform.mac_ver()[0]}"
+    elif system == "Darwin":
+        base = f"{hw_type} | Mac / macOS {platform.mac_ver()[0]}"
+    else:
+        base = f"{hw_type} | {system} / {platform.release()}"
         
-    return f"{system} / {platform.release()}"
+    return f"{base} | Arch: {arch} | Shell: {shell}"
 
 
 def main():
