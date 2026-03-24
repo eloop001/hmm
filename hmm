@@ -7,45 +7,32 @@ if [[ "$1" == "-update" ]]; then
     echo "Updating hmm..."
     BASE_URL="https://raw.githubusercontent.com/eloop001/hmm/main"
     INSTALL_DIR="$HOME/.local/bin"
-    FILES="hmm gpt.py cmdhelper.py oshelp.md"
+    FILES="hmm gemini.py cmdhelper.py oshelp.md"
     
     mkdir -p "$INSTALL_DIR"
     
-    # Preserve the existing Python shebang if present
-    CONDA_PYTHON=""
-    if [ -f "$INSTALL_DIR/cmdhelper.py" ]; then
-        CONDA_PYTHON=$(head -n 1 "$INSTALL_DIR/cmdhelper.py" | grep '^#!' | sed 's/^#!//')
-    fi
-    
-    # If the shebang was not correctly pointing to a conda environment, try to detect it
-    if [[ "$CONDA_PYTHON" == *"/usr/bin/env"* || -z "$CONDA_PYTHON" || "$CONDA_PYTHON" == "/usr/bin/python"* ]]; then
-        for candidate in "$HOME/miniconda3" "$HOME/anaconda3" "$HOME/opt/anaconda3" "/opt/miniconda3" "/opt/anaconda3"; do
-            if [ -f "$candidate/envs/hmm-helper/bin/python" ]; then
-                CONDA_PYTHON="$candidate/envs/hmm-helper/bin/python"
-                break
-            fi
-        done
-    fi
+    # Use the venv Python path for shebangs
+    VENV_PYTHON="$HOME/.local/share/hmm/venv/bin/python"
     
     for FILE in $FILES; do
         echo "  Downloading $FILE ..."
         curl -fsSL "$BASE_URL/$FILE" -o "$INSTALL_DIR/$FILE"
     done
     
-    chmod +x "$INSTALL_DIR/hmm" "$INSTALL_DIR/gpt.py" "$INSTALL_DIR/cmdhelper.py"
+    chmod +x "$INSTALL_DIR/hmm" "$INSTALL_DIR/gemini.py" "$INSTALL_DIR/cmdhelper.py"
     
     # Restore shebangs
-    if [ -n "$CONDA_PYTHON" ]; then
-        echo "Restoring shebangs to use $CONDA_PYTHON ..."
-        for PYFILE in "$INSTALL_DIR/gpt.py" "$INSTALL_DIR/cmdhelper.py"; do
+    if [ -n "$VENV_PYTHON" ] && [ -f "$VENV_PYTHON" ]; then
+        echo "Restoring shebangs to use $VENV_PYTHON ..."
+        for PYFILE in "$INSTALL_DIR/gemini.py" "$INSTALL_DIR/cmdhelper.py"; do
             if head -1 "$PYFILE" | grep -q '^#!'; then
                 if [ "$(uname)" = "Darwin" ]; then
-                    sed -i '' "1s|^#!.*|#!$CONDA_PYTHON|" "$PYFILE"
+                    sed -i '' "1s|^#!.*|#!$VENV_PYTHON|" "$PYFILE"
                 else
-                    sed -i "1s|^#!.*|#!$CONDA_PYTHON|" "$PYFILE"
+                    sed -i "1s|^#!.*|#!$VENV_PYTHON|" "$PYFILE"
                 fi
             else
-                echo "#!$CONDA_PYTHON" > "$PYFILE.tmp"
+                echo "#!$VENV_PYTHON" > "$PYFILE.tmp"
                 cat "$PYFILE" >> "$PYFILE.tmp"
                 mv "$PYFILE.tmp" "$PYFILE"
                 chmod +x "$PYFILE"
@@ -65,23 +52,15 @@ if [[ "$1" == "-x" ]]; then
     # Run the helper script and capture the output into a variable
     GENERATED_CMD=$("$HELPER_SCRIPT" "$@")
     
+    if [[ "$GENERATED_CMD" == \#* ]]; then
+        printf "\033[31m%s\033[0m\n" "$GENERATED_CMD"
+        echo "To run this command manually, copy and paste it into your terminal."
+        exit 0
+    fi
+    
     # Print what is about to be executed (for safety and visibility)
     printf "\033[36mCommand:\033[0m %s\n" "$GENERATED_CMD"
     
-    # --- SAFETY CONFIRMATION BLOCK (Currently Disabled) ---
-    # To enable, uncomment the lines below and delete the active 'eval' line at the bottom.
-    
-    # read -r -p "Execute this command? [Y/n] " confirm
-    # # Default to Yes if the user just presses Enter, or accept Y/y
-    # if [[ -z "$confirm" || "$confirm" =~ ^[Yy]$ ]]; then
-    #     eval "$GENERATED_CMD"
-    # else
-    #     printf "\033[31mExecution cancelled.\033[0m\n"
-    # fi
-    
-    # ------------------------------------------------------
-    
-    # Execute the generated command automatically (Active)
     eval "$GENERATED_CMD"
     
 else

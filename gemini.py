@@ -5,17 +5,34 @@ from google.genai import types
 import os
 
 class Config:
-    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+    CURRENT_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     MODEL_NAME_FLASH = "gemini-3.1-flash-lite-preview"
     TEMPERATURE = 0.05
-    CURRENT_SCIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     THINKING_LEVEL = "MINIMAL"  # Options: LOW, HIGH
 
 model_name = Config.MODEL_NAME_FLASH
 
-def call_gpt(query: str, sysinfo: str) -> str:
+def call_gemini(query: str, sysinfo: str) -> str:
+    
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        env_file = os.path.expanduser("~/.config/hmm/.env")
+        if os.path.exists(env_file):
+            try:
+                with open(env_file, "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("GOOGLE_API_KEY="):
+                            api_key = line.split("=", 1)[1].strip('"\'')
+                            os.environ["GOOGLE_API_KEY"] = api_key
+                            break
+            except Exception:
+                pass
+    
+    if not api_key:
+        return "#Error: No API key found. Set GOOGLE_API_KEY or add it to ~/.config/hmm/.env"
 
-    prompt_file = os.path.join(Config.CURRENT_SCIPT_DIR, "oshelp.md")
+    prompt_file = os.path.join(Config.CURRENT_SCRIPT_DIR, "oshelp.md")
     with open(prompt_file, "r") as f:
         prompt = f.read()
     
@@ -57,7 +74,7 @@ def call_gpt(query: str, sysinfo: str) -> str:
         ]
 
         # 4. Initialize Client
-        google_client = genai.Client(api_key=Config.GOOGLE_API_KEY)
+        google_client = genai.Client(api_key=api_key)
         
         # 5. Generate Content
         response = google_client.models.generate_content(
@@ -71,9 +88,9 @@ def call_gpt(query: str, sysinfo: str) -> str:
         
         return result
 
-        
     except Exception as e:
-        print( f"Error during generation or execution: {str(e)}")
+        print(f"Error during generation or execution: {str(e)}")
+        return f"#Error: {e}"
         
 # Test the function with a sample query
 #query = "my computer is listening on port 42235. What is that port used for?"

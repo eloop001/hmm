@@ -2,7 +2,7 @@
 
 Ever found yourself staring blankly at a blinking terminal cursor, wondering what the exact dark magic incantation is to extract a `.tar.gz` file? Or maybe you just can't remember the `find` command syntax to save your life? 
 
-Welcome to ***hmm***! The ultra-light command-line helper built for folks completely new to the Linux/Mac command line, or just those of us whose brain cache gets mysteriously cleared a little too often. Just write `hmm` followd by what you want to do, and it will give you the exact command you need, or use `-x` and **execute the command right away.**
+Welcome to ***hmm***! The ultra-light command-line helper built for folks completely new to the Linux/Mac command line, or just those of us whose brain cache gets mysteriously cleared a little too often. Just write `hmm` followed by what you want to do, and it will give you the exact command you need, or use `-x` and **execute the command right away.**
 
 ```bash
 :~$ hmm 'where do I find the log files for docker?'
@@ -38,9 +38,9 @@ We firmly believe in transparency when it comes to tools that read from your env
 When you run the installation script (`install.sh`), it will:
 
 1. **Download Scripts**: Fetch the required scripts (`hmm`, `gpt.py`, `cmdhelper.py`, and `oshelp.md`) directly from the [GitHub repository](https://github.com/eloop001/hmm) and place them in your `~/.local/bin` directory.
-2. **Setup Environment**: Locate your Conda or Miniconda installation, and create a lightweight, isolated environment named `hmm-helper` using Python 3.11. 
-3. **Install Dependencies**: Install the `google-genai` Python package into that isolated Conda environment so it doesn't pollute your global Python setup.
-4. **Shell Configuration**: Prompt you for your Google Gemini API key and securely inject it (along with `~/.local/bin` to your PATH) into your shell configuration file (like `~/.bashrc`, `~/.zshrc`, or `~/.profile`). 
+2. **Setup Environment**: create a lightweight environment at ~/.local/share/hmm/venv using python3 -m venv.
+3. **Install Dependencies**: Install the google-genai Python package into that isolated environment.
+4. **Shell Configuration**: Prompt you for your Google Gemini API key and securely inject it into ~/.config/hmm/.env, and add ~/.local/bin to your PATH.
 
 ### External Calls and API Key
 

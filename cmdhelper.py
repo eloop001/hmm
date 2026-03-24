@@ -3,9 +3,9 @@
 import sys
 import os
 import platform
-from gpt import call_gpt 
+from gemini import call_gemini
 
-# Ensure the script can find gpt.py in the same directory
+# Ensure the script can find gemini.py in the same directory
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def get_os_info() -> str:
@@ -47,10 +47,10 @@ def main():
     
     try:
         # Pass the plain text and OS info to your GPT library
-        result = call_gpt(prompt, get_os_info())
+        result = call_gemini(prompt, get_os_info())
         
         # Force the output into a single line to keep the console clean
-        single_line_result = str(result).replace('\n', ' ').replace('\r', '').strip()
+        single_line_result = str(result).strip()
         
         # Output directly to console
         print(single_line_result)
