@@ -14,12 +14,22 @@ Command: ls -lS
 -rw-rw-r--  1 mv   mv     78267034 Mar  3 12:09  snd.mp3
 ```
 
+## Installation
+
+Simply run the following command:
+
+```
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+## Updating
 You can also easily update `hmm` to the latest version by running:
 
 ```
 :~$ hmm -update
 ```
 
+## Safety for beginners
 There is even a failsafe, pretty useful for beginners. Even if you use the flag `-x` ***hmm*** will warn you, and will **not** run the command directly, if it will result in severe loss of data or corruption of the os.
 
 ```
@@ -27,11 +37,11 @@ There is even a failsafe, pretty useful for beginners. Even if you use the flag 
 #WARNING: This command will permanently delete all files and folders in your home directory, which is an IRREVERSIBLE action that will result in total data loss; to proceed, run: rm -rf ~/*
 ```
 
-## Pasting Errors and Logs (No Quotes Needed!)
+## Pasting Errors and Logs
 
 If you need `hmm` to fix an error message, or if your query contains special characters like `'`, `"`, or `|`, using quotes on the command line can break. You can safely bypass this in two ways:
 
-**1. Interactive Pasting Mode:**
+### 1. Interactive Pasting Mode:
 
 Just type `hmm` (or `hmm -x`) and press Enter. It will open a prompt where you can paste any error log without worrying about formatting or quotes. Press `Ctrl+D` when you are done pasting.
 
@@ -48,7 +58,7 @@ npm ERR! path /home/user/package.json
 # It looks like you are missing a package.json file. Run: npm init
 ```
 
-**2. Piping (Advanced):**
+### 2. Piping (Advanced):
 
 You can pipe failing commands or logs directly into `hmm`:
 
@@ -62,7 +72,7 @@ We firmly believe in transparency when it comes to tools that read from your env
 
 ### What the Installation Does
 
-When you run the installation script (`install.sh`), it will:
+When you install **hmm** with (`curl -fsSL https://ollama.com/install.sh | sh`), it will:
 
 1. **Download Scripts**: Fetch the required scripts (`hmm`, `gemini.py`, `cmdhelper.py`, and `oshelp.md`) directly from the [GitHub repository](https://github.com/eloop001/hmm) and place them in your `~/.local/bin` directory.
 2. **Setup Environment**: create a lightweight environment at `~/.local/share/hmm/venv` using `python3 -m venv`.
