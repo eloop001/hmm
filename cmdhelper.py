@@ -34,19 +34,45 @@ def get_os_info() -> str:
     return f"{base} | Arch: {arch} | Shell: {shell}"
 
 
-def main():
-    # Check if a prompt was provided
-    if len(sys.argv) < 2:
-        print("Hmm...Error: No prompt provided.")
-        print("Usage: hmm [-x] <your question>")
-        print("       hmm -update   (to update hmm to the latest version)")
-        sys.exit(1)
+def main(debug_input: str = None):
+    prompt = ""
+
+    if debug_input:
+        prompt = debug_input.strip()
+    else:
     
-    # Capture the prompt (combining arguments just in case quotes are omitted)
-    prompt = " ".join(sys.argv[1:])
-    
+        # 1. Read from standard input if data is being piped (e.g., cat error.log | hmm)
+        if not sys.stdin.isatty():
+            prompt = sys.stdin.read().strip()
+            
+    # 2. Add any command-line arguments passed
+    if len(sys.argv) > 1:
+        arg_prompt = " ".join(sys.argv[1:]).strip()
+        if prompt:
+            # Combine args and piped input (e.g., `cat log | hmm "fix this error"`)
+            prompt = f"{arg_prompt}\n\nContext:\n{prompt}"
+        else:
+            prompt = arg_prompt
+            
+    # 3. Interactive fallback: No args and no pipe
+    if not prompt:
+        # Print to stderr so it shows up even if hmm is capturing stdout for the -x flag
+        print("Hmm... No question provided.", file=sys.stderr)
+        print("Type your question and/or paste your error messages or other information below", file=sys.stderr)
+        print("that hmm can use to help you.", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("(Press Ctrl+D when finished to submit)\n", file=sys.stderr)
+        print("---", file=sys.stderr)
+        try:
+            prompt = sys.stdin.read().strip()
+        except KeyboardInterrupt:
+            sys.exit(0)
+
+    if not prompt:
+        sys.exit(0)
+        
     try:
-        # Pass the plain text and OS info to your GPT library
+        # Pass the plain text and OS info to your Gemini library
         result = call_gemini(prompt, get_os_info())
         
         # Force the output into a single line to keep the console clean
@@ -59,5 +85,6 @@ def main():
         print(f"Hmm... Error: {e}")
 
 if __name__ == "__main__":
-    main()
 
+    main()
+    
