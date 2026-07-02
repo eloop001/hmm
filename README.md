@@ -72,7 +72,7 @@ We firmly believe in transparency when it comes to tools that read from your env
 
 ### What the Installation Does
 
-When you install **hmm** with (`curl -fsSL https://ollama.com/install.sh | sh`), it will:
+When you install **hmm**, it will:
 
 1. **Download Scripts**: Fetch the required scripts (`hmm`, `gemini.py`, `cmdhelper.py`, and `oshelp.md`) directly from the [GitHub repository](https://github.com/eloop001/hmm) and place them in your `~/.local/bin` directory.
 2. **Setup Environment**: create a lightweight environment at `~/.local/share/hmm/venv` using `python3 -m venv`.
