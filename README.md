@@ -19,7 +19,7 @@ Command: ls -lS
 Simply run the following command:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/eloop001/hmm/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/eloop001/hmm/main/install.sh | bash
 ```
 
 ## Updating
