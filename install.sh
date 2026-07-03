@@ -97,9 +97,9 @@ if [ ! -f "$ENV_FILE" ]; then
 else
     if grep -q "^GOOGLE_API_KEY=" "$ENV_FILE"; then
         if [ "$(uname)" = "Darwin" ]; then
-            sed -i '' "s|^GOOGLE_API_KEY=.*|GOOGLE_API_KEY=\"$GOOGLE_API_KEY\"|" "$ENV_FILE"
+            sed -i '' 's|^GOOGLE_API_KEY=.*|GOOGLE_API_KEY="'"$GOOGLE_API_KEY"'"|' "$ENV_FILE"
         else
-            sed -i "s|^GOOGLE_API_KEY=.*|GOOGLE_API_KEY=\"$GOOGLE_API_KEY\"|" "$ENV_FILE"
+            sed -i 's|^GOOGLE_API_KEY=.*|GOOGLE_API_KEY="'"$GOOGLE_API_KEY"'"|' "$ENV_FILE"
         fi
         echo "API Key updated in $ENV_FILE"
     else
@@ -107,7 +107,6 @@ else
         echo "API Key added to $ENV_FILE"
     fi
 fi
-
 # ── 10. Apply changes to the current session ──────────────────────────────────
 export PATH="$HOME/.local/bin:$PATH"
 export GOOGLE_API_KEY="$GOOGLE_API_KEY"
