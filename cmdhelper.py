@@ -23,6 +23,27 @@ def get_package_manager() -> str:
     return "unknown"
 
 
+def get_local_ip() -> str:
+    """Return the primary local (LAN) IPv4 address, or 'unknown'.
+
+    Uses a UDP socket to ask the kernel which interface address would be used
+    to reach an external host. No packet is actually sent (UDP connect only
+    sets the default peer), and no external service is queried, so this never
+    discovers or transmits the public/NAT IP — only the machine's own local
+    interface address, which for a typical NAT'd machine is an RFC-1918
+    private address.
+    """
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0]
+    except OSError:
+        return "unknown"
+    finally:
+        s.close()
+
+
 def get_privilege_info() -> str:
     """Describe privilege context so the model knows when to prefix sudo.
 
@@ -64,8 +85,10 @@ def get_os_info() -> str:
 
     pkg = get_package_manager()
     priv = get_privilege_info()
+    local_ip = get_local_ip()
     return (f"{base} | Arch: {arch} | Shell: {shell} "
-            f"| Package manager: {pkg} | Privilege: {priv}")
+            f"| Package manager: {pkg} | Privilege: {priv} "
+            f"| Local IP: {local_ip}")
 
 
 def main(debug_input: str = None):
