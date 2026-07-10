@@ -29,6 +29,16 @@ You can also easily update `hmm` to the latest version by running:
 :~$ hmm -update
 ```
 
+## Changing your API key
+
+If your Google Gemini API key expires or you want to switch to a different one, run:
+
+```
+:~$ hmm -key
+```
+
+You will be prompted for the new key, which is validated against the API and stored in `~/.config/hmm/.env`. If `hmm` ever detects that your stored key has become invalid, it will automatically prompt you for a new one.
+
 ## Safety for beginners
 There is even a failsafe, pretty useful for beginners. Even if you use the flag `-x` ***hmm*** will warn you, and will **not** run the command directly, if it will result in severe loss of data or corruption of the os.
 
@@ -74,7 +84,7 @@ We firmly believe in transparency when it comes to tools that read from your env
 
 When you install **hmm**, it will:
 
-1. **Download Scripts**: Fetch the required scripts (`hmm`, `gemini.py`, `cmdhelper.py`, and `oshelp.md`) directly from the [GitHub repository](https://github.com/eloop001/hmm) and place them in your `~/.local/bin` directory.
+1. **Download Scripts**: Fetch the required files (`hmm`, `gemini.py`, `cmdhelper.py`, `oshelp.md`, and `requirements.txt`) directly from the [GitHub repository](https://github.com/eloop001/hmm) into a temporary staging area, verify them, and then place them in your `~/.local/bin` directory — a failed download never leaves you with a broken installation.
 2. **Setup Environment**: create a lightweight environment at `~/.local/share/hmm/venv` using `python3 -m venv`.
 3. **Install Dependencies**: Install the `google-genai` Python package into that isolated environment.
 4. **Shell Configuration**: Prompt you for your Google Gemini API key, securely inject it into `~/.config/hmm/.env`, and add `~/.local/bin` to your PATH.
@@ -83,7 +93,8 @@ When you install **hmm**, it will:
 
 - `hmm` acts as a bridge between your local terminal and **Google GenAI**.
 - Every time you run a query using `hmm`, it makes an API call to Google's Gemini API to determine the right command for you.
-- Because of this, the tool **requires a Google Gemini API key** to function.
+- `hmm` uses stable (non-preview) Gemini models. If a model is ever retired or unavailable, it automatically falls back to the next stable model in its list.
+- Because of this, the tool **requires a Google Gemini API key** to function. Use `hmm -key` to set or replace it at any time.
 
 ### OS Information Extraction
 

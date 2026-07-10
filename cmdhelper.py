@@ -3,19 +3,20 @@
 import sys
 import os
 import platform
-from gemini import call_gemini
 
 # Ensure the script can find gemini.py in the same directory
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from gemini import call_gemini, update_api_key_interactive
 
 def get_os_info() -> str:
     """Extract OS type, version, architecture, and shell for concise environment context."""
     system = platform.system()
     arch = platform.machine()
     shell = os.environ.get("SHELL", "unknown")
-    
+
     hw_type = "Apple" if system == "Darwin" else "PC"
-    
+
     if system == "Linux":
         try:
             with open("/etc/os-release") as f:
@@ -25,12 +26,12 @@ def get_os_info() -> str:
         except OSError:
             # Fallback when the OS release file is unavailable
             base = f"{hw_type} | Linux / {platform.release()}"
-            
+
     elif system == "Darwin":
         base = f"{hw_type} | Mac / macOS {platform.mac_ver()[0]}"
     else:
         base = f"{hw_type} | {system} / {platform.release()}"
-        
+
     return f"{base} | Arch: {arch} | Shell: {shell}"
 
 
@@ -40,11 +41,11 @@ def main(debug_input: str = None):
     if debug_input:
         prompt = debug_input.strip()
     else:
-    
+
         # 1. Read from standard input if data is being piped (e.g., cat error.log | hmm)
         if not sys.stdin.isatty():
             prompt = sys.stdin.read().strip()
-            
+
     # 2. Add any command-line arguments passed
     if len(sys.argv) > 1:
         arg_prompt = " ".join(sys.argv[1:]).strip()
@@ -53,7 +54,7 @@ def main(debug_input: str = None):
             prompt = f"{arg_prompt}\n\nContext:\n{prompt}"
         else:
             prompt = arg_prompt
-            
+
     # 3. Interactive fallback: No args and no pipe
     if not prompt:
         # Print to stderr so it shows up even if hmm is capturing stdout for the -x flag
@@ -70,21 +71,24 @@ def main(debug_input: str = None):
 
     if not prompt:
         sys.exit(0)
-        
+
     try:
         # Pass the plain text and OS info to your Gemini library
         result = call_gemini(prompt, get_os_info())
-        
+
         # Force the output into a single line to keep the console clean
         single_line_result = str(result).strip()
-        
+
         # Output directly to console
         print(single_line_result)
-        
+
     except Exception as e:
-        print(f"Hmm... Error: {e}")
+        # '#' prefix so 'hmm -x' prints this instead of eval'ing it
+        print(f"#Hmm... Error: {e}")
 
 if __name__ == "__main__":
 
+    if len(sys.argv) > 1 and sys.argv[1] in ("-key", "--key"):
+        sys.exit(update_api_key_interactive())
+
     main()
-    

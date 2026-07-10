@@ -3,79 +3,88 @@
 # Define the path to your python helper script
 HELPER_SCRIPT="$HOME/.local/bin/cmdhelper.py"
 
-if [[ "$1" == "-update" ]]; then
+if [[ "${1:-}" == "-update" ]]; then
     echo "Updating hmm..."
     BASE_URL="https://raw.githubusercontent.com/eloop001/hmm/main"
     INSTALL_DIR="$HOME/.local/bin"
-    FILES="hmm gemini.py cmdhelper.py oshelp.md"
-    
-    mkdir -p "$INSTALL_DIR"
-
-    # Use the venv Python path for shebangs
+    FILES="hmm gemini.py cmdhelper.py oshelp.md requirements.txt"
     VENV_DIR="$HOME/.local/share/hmm/venv"
     VENV_PYTHON="$VENV_DIR/bin/python"
+
+    # Stage everything first: a failed download must not break the
+    # existing installation.
+    TMP_DIR=$(mktemp -d)
+    trap 'rm -rf "$TMP_DIR"' EXIT
+
+    for FILE in $FILES; do
+        echo "  Downloading $FILE ..."
+        if ! curl -fsSL "$BASE_URL/$FILE" -o "$TMP_DIR/$FILE" || [ ! -s "$TMP_DIR/$FILE" ]; then
+            echo "ERROR: failed to download $FILE — update aborted, existing installation left untouched." >&2
+            exit 1
+        fi
+    done
 
     if [ ! -x "$VENV_PYTHON" ]; then
         echo "Virtual environment not found, recreating it at $VENV_DIR..."
         if ! python3 -m venv "$VENV_DIR"; then
             echo "ERROR: failed to recreate the virtual environment." >&2
+            echo "On Debian/Ubuntu, install the venv module first: sudo apt install python3-venv" >&2
             exit 1
         fi
-        echo "Reinstalling dependencies..."
-        "$VENV_PYTHON" -m pip install --quiet -r "$INSTALL_DIR/requirements.txt" 2>/dev/null \
-            || "$VENV_PYTHON" -m pip install --quiet google-genai
     fi
 
-    for FILE in $FILES; do
-        echo "  Downloading $FILE ..."
-        curl -fsSL "$BASE_URL/$FILE" -o "$INSTALL_DIR/$FILE"
+    echo "Updating dependencies..."
+    if ! "$VENV_PYTHON" -m pip install --quiet --upgrade -r "$TMP_DIR/requirements.txt"; then
+        echo "WARNING: could not update dependencies; continuing with the existing ones." >&2
+    fi
+
+    # Patch shebangs in staging before moving into place
+    for PYFILE in "$TMP_DIR/gemini.py" "$TMP_DIR/cmdhelper.py"; do
+        TMP="$PYFILE.patched"
+        printf '#!%s\n' "$VENV_PYTHON" > "$TMP"
+        if head -1 "$PYFILE" | grep -q '^#!'; then
+            tail -n +2 "$PYFILE" >> "$TMP"
+        else
+            cat "$PYFILE" >> "$TMP"
+        fi
+        mv "$TMP" "$PYFILE"
     done
 
+    mkdir -p "$INSTALL_DIR"
+    for FILE in $FILES; do
+        mv -f "$TMP_DIR/$FILE" "$INSTALL_DIR/$FILE"
+    done
     chmod +x "$INSTALL_DIR/hmm" "$INSTALL_DIR/gemini.py" "$INSTALL_DIR/cmdhelper.py"
 
-    # Restore shebangs
-    if [ -x "$VENV_PYTHON" ]; then
-        echo "Restoring shebangs to use $VENV_PYTHON ..."
-        for PYFILE in "$INSTALL_DIR/gemini.py" "$INSTALL_DIR/cmdhelper.py"; do
-            if head -1 "$PYFILE" | grep -q '^#!'; then
-                if [ "$(uname)" = "Darwin" ]; then
-                    sed -i '' "1s|^#!.*|#!$VENV_PYTHON|" "$PYFILE"
-                else
-                    sed -i "1s|^#!.*|#!$VENV_PYTHON|" "$PYFILE"
-                fi
-            else
-                echo "#!$VENV_PYTHON" > "$PYFILE.tmp"
-                cat "$PYFILE" >> "$PYFILE.tmp"
-                mv "$PYFILE.tmp" "$PYFILE"
-                chmod +x "$PYFILE"
-            fi
-        done
-    fi
-    
     echo "Update complete!"
     exit 0
 fi
 
 # Check if the first argument is the execute flag
-if [[ "$1" == "-x" ]]; then
+if [[ "${1:-}" == "-x" ]]; then
     # Remove the '-x' flag from the list of arguments
-    shift 
-    
+    shift
+
     # Run the helper script and capture the output into a variable
     GENERATED_CMD=$("$HELPER_SCRIPT" "$@")
-    
+
+    if [[ -z "$GENERATED_CMD" ]]; then
+        exit 0
+    fi
+
     if [[ "$GENERATED_CMD" == \#* ]]; then
         printf "\033[31m%s\033[0m\n" "$GENERATED_CMD"
         echo "To run this command manually, copy and paste it into your terminal."
         exit 0
     fi
-    
+
     # Print what is about to be executed (for safety and visibility)
     printf "\033[36mCommand:\033[0m %s\n" "$GENERATED_CMD"
-    
+
     eval "$GENERATED_CMD"
-    
+
 else
-    # Standard behavior: just run the script and print to console
+    # Standard behavior: just run the script and print to console.
+    # '-key' is handled inside the helper (prompts for and stores a new API key).
     "$HELPER_SCRIPT" "$@"
 fi
