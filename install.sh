@@ -149,7 +149,10 @@ echo "API key stored in $ENV_FILE"
 echo
 echo "Installation complete!"
 echo "Open a new terminal (or run: source $CONFIG_FILE) and try:"
-echo "  hmm <your question>     get a shell command"
-echo "  hmm -x <your question>  get the command and run it"
+echo "  hmm 'your question'     get a shell command"
+echo "  hmm -x 'your question'  get the command and run it"
 echo "  hmm -key                change your API key"
 echo "  hmm -update             update hmm to the latest version"
+echo
+echo "Tip: wrap your question in single quotes (') so the shell doesn't"
+echo "     try to interpret spaces or special characters like | and \$."
