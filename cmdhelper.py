@@ -3,11 +3,41 @@
 import sys
 import os
 import platform
+import shutil
 
 # Ensure the script can find gemini.py in the same directory
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from gemini import call_gemini, update_api_key_interactive
+
+# Package managers in rough order of specificity, so the first match on PATH
+# is the one the model should target for install/update/search commands.
+PACKAGE_MANAGERS = ["apt", "dnf", "yum", "pacman", "zypper", "apk", "brew"]
+
+
+def get_package_manager() -> str:
+    """Return the name of the first known package manager found on PATH."""
+    for pm in PACKAGE_MANAGERS:
+        if shutil.which(pm):
+            return pm
+    return "unknown"
+
+
+def get_privilege_info() -> str:
+    """Describe privilege context so the model knows when to prefix sudo.
+
+    Reveals no personal data — only whether the session is already root and
+    whether sudo is available for escalation.
+    """
+    try:
+        is_root = os.geteuid() == 0
+    except AttributeError:
+        # os.geteuid() is unavailable on non-POSIX platforms.
+        return "unknown"
+    if is_root:
+        return "root"
+    return "sudo available" if shutil.which("sudo") else "no sudo"
+
 
 def get_os_info() -> str:
     """Extract OS type, version, architecture, and shell for concise environment context."""
@@ -32,7 +62,10 @@ def get_os_info() -> str:
     else:
         base = f"{hw_type} | {system} / {platform.release()}"
 
-    return f"{base} | Arch: {arch} | Shell: {shell}"
+    pkg = get_package_manager()
+    priv = get_privilege_info()
+    return (f"{base} | Arch: {arch} | Shell: {shell} "
+            f"| Package manager: {pkg} | Privilege: {priv}")
 
 
 def main(debug_input: str = None):
