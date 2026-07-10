@@ -1,5 +1,6 @@
 #!/bin/bash
 set -eu
+set -o pipefail
 
 BASE_URL="https://raw.githubusercontent.com/eloop001/hmm/main"
 INSTALL_DIR="$HOME/.local/bin"
@@ -28,9 +29,19 @@ echo "Found python3: $(command -v python3)"
 VENV_DIR="$HOME/.local/share/hmm/venv"
 if [ ! -d "$VENV_DIR" ]; then
     echo "Creating virtual environment at $VENV_DIR..."
-    python3 -m venv "$VENV_DIR"
+    if ! python3 -m venv "$VENV_DIR"; then
+        echo "ERROR: failed to create the virtual environment." >&2
+        echo "On Debian/Ubuntu, install the venv module first, e.g.:" >&2
+        echo "  sudo apt install python3-venv" >&2
+        exit 1
+    fi
 fi
 VENV_PYTHON="$VENV_DIR/bin/python"
+if [ ! -x "$VENV_PYTHON" ]; then
+    echo "ERROR: virtual environment at $VENV_DIR is missing its python binary." >&2
+    echo "Try removing $VENV_DIR and re-running this installer." >&2
+    exit 1
+fi
 
 # ── 4/5. Download ─────────────────────────────────────────────────────────────
 mkdir -p "$INSTALL_DIR"
@@ -90,4 +101,3 @@ echo "API key stored in $ENV_FILE"
 echo
 echo "Installation complete!"
 echo "Run 'hmm <your question>' to get a shell command."
-r
