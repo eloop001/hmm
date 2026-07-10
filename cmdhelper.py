@@ -14,6 +14,25 @@ from gemini import call_gemini, update_api_key_interactive
 # is the one the model should target for install/update/search commands.
 PACKAGE_MANAGERS = ["apt", "dnf", "yum", "pacman", "zypper", "apk", "brew"]
 
+# Curated allowlist of command-relevant software. Each entry maps a friendly
+# label to the candidate binaries that indicate it is installed. Only the
+# label is reported, and only when a binary is found on PATH — this is a fixed
+# list on purpose, to keep the context small rather than scanning everything
+# installed. All checks are binary-presence only (no personal data).
+NOTABLE_TOOLS = [
+    ("nginx", ["nginx"]),
+    ("apache", ["apache2", "httpd"]),
+    ("docker", ["docker"]),
+    ("podman", ["podman"]),
+    ("postgres", ["psql"]),
+    ("mysql", ["mysql", "mariadb"]),
+    ("redis", ["redis-cli"]),
+    ("ufw", ["ufw"]),
+    ("firewalld", ["firewall-cmd"]),
+    ("nftables", ["nft"]),
+    ("iptables", ["iptables"]),
+]
+
 
 def get_package_manager() -> str:
     """Return the name of the first known package manager found on PATH."""
@@ -21,6 +40,28 @@ def get_package_manager() -> str:
         if shutil.which(pm):
             return pm
     return "unknown"
+
+
+def get_init_system() -> str:
+    """Identify the service manager so 'start/stop/enable a service' commands fit."""
+    if platform.system() == "Darwin":
+        return "launchd"
+    if shutil.which("systemctl"):
+        return "systemd"
+    if shutil.which("rc-service"):
+        return "openrc"
+    if shutil.which("service"):
+        return "sysvinit (service)"
+    return "unknown"
+
+
+def get_notable_tools() -> str:
+    """Return a comma-separated list of installed command-relevant tools."""
+    found = []
+    for label, binaries in NOTABLE_TOOLS:
+        if any(shutil.which(b) for b in binaries):
+            found.append(label)
+    return ", ".join(found) if found else "none detected"
 
 
 def get_local_ip() -> str:
@@ -86,9 +127,11 @@ def get_os_info() -> str:
     pkg = get_package_manager()
     priv = get_privilege_info()
     local_ip = get_local_ip()
+    init = get_init_system()
+    tools = get_notable_tools()
     return (f"{base} | Arch: {arch} | Shell: {shell} "
-            f"| Package manager: {pkg} | Privilege: {priv} "
-            f"| Local IP: {local_ip}")
+            f"| Package manager: {pkg} | Init: {init} | Privilege: {priv} "
+            f"| Local IP: {local_ip} | Installed: {tools}")
 
 
 def main(debug_input: str = None):
