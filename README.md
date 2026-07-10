@@ -96,12 +96,30 @@ When you install **hmm**, it will:
 - `hmm` uses stable (non-preview) Gemini models. If a model is ever retired or unavailable, it automatically falls back to the next stable model in its list.
 - Because of this, the tool **requires a Google Gemini API key** to function. Use `hmm -key` to set or replace it at any time.
 
-### OS Information Extraction
+### What Information hmm Sends
 
-To ensure that the GenAI model returns a command that *actually works* on your specific machine, ***hmm*** extracts standard OS-level versioning context and sends it along with your query. The exact information extracted is:
+For the AI to suggest a command that *actually works on your machine*, it needs a little context about your system. So along with your question, ***hmm*** sends a short, single line describing your environment. Nothing else about your files or activity is collected.
 
-- **On Linux:** The script reads `/etc/os-release` to find the exact distribution name via `PRETTY_NAME` or `NAME` (e.g., "Linux / Ubuntu 22.04 LTS"). If that fails, it falls back to your kernel version (`platform.release()`).
-- **On macOS (Darwin):** The script dynamically pulls your exact macOS version using Python's `platform.mac_ver()` (e.g., "Mac / macOS 14.4.1").
+Here is every piece of that context, in plain terms, and why it helps:
+
+| What we send | Example | Why it helps |
+| --- | --- | --- |
+| **Operating system & version** | `Linux / Ubuntu 22.04 LTS` or `Mac / macOS 14.4.1` | So commands match your OS. On Linux this comes from `/etc/os-release` (falling back to your kernel version); on Mac from `platform.mac_ver()`. |
+| **CPU architecture** | `x86_64`, `arm64` | Some commands and downloads differ between Intel and ARM machines. |
+| **Shell** | `/bin/bash`, `/bin/zsh` | So the syntax fits the shell you actually use. |
+| **Package manager** | `apt`, `dnf`, `brew` | So "install X" gives you the right command for your system. |
+| **Init / service manager** | `systemd`, `launchd` | So "start/stop/restart a service" uses the correct tool. |
+| **Privilege** | `root`, `sudo available` | So commands add `sudo` only when it's needed and available. |
+| **Local network address** | `192.168.1.42` | Helps with home/office network questions. This is only your machine's local (LAN) address. |
+| **Installed tools** | `nginx, docker, postgres, ufw` | So answers match the software you actually have. We only check for a short, fixed list of common tools (web servers, containers, databases, firewalls). |
+
+**What hmm deliberately does *not* collect or send:**
+
+- Your **name, username, or hostname**.
+- Your **public IP address** (the address the wider internet sees). Only your local network address is used, and it is never looked up from an outside service.
+- The **contents of your files**, your command history, or anything you did not type into `hmm` yourself.
+
+Every check above is a quick, local look-up (for example, "is this program installed?") — none of it makes an extra network call, and none of it reads personal data.
 
 ## License
 
